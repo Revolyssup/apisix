@@ -77,7 +77,6 @@ __DATA__
                             "ssl_verify": false,
                             "password_grant_token_generation_incoming_uri": "/api/token"
                         }
-                      }
                     }
                 }]]
                 )
