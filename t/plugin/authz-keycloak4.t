@@ -47,7 +47,7 @@ __DATA__
         content_by_lua_block {
             local t = require("lib.test_admin").test
             -- put secret vault config
-            local code, body = t('/apisix/admin/secrets/vault/test1',
+            local code, body = t('/apisix/admin/secrets/vault/testauthz',
                 ngx.HTTP_PUT,
                 [[{
                     "uri": "http://127.0.0.1:8200",
@@ -61,44 +61,29 @@ __DATA__
                 return ngx.say(body)
             end
 
-            -- change consumer with secrets ref: vault
-            code, body = t('/apisix/admin/consumers',
-                ngx.HTTP_PUT,
-                [[{
-                    "username": "jack",
-                    "plugins": {
-                        "authz-keycloak": {
-                            "token_endpoint": "https://127.0.0.1:8443/realms/University/protocol/openid-connect/token",
-                            "permissions": ["course_resource#view"],
-                            "client_id": "course_management",
-                            "client_secret": "$secret://vault/test1/jack/secret_key",
-                            "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
-                            "timeout": 3000,
-                            "ssl_verify": false,
-                            "password_grant_token_generation_incoming_uri": "/api/token"
-                        }
-                    }
-                }]]
-                )
-            if code >= 300 then
-                ngx.status = code
-                return ngx.say(body)
-            end
-
             -- set route
             code, body = t('/apisix/admin/routes/1',
                 ngx.HTTP_PUT,
                 [[{
-                    "plugins": {
-                        "authz-keycloak": {}
-                    },
-                    "upstream": {
-                        "nodes": {
-                            "127.0.0.1:1982": 1
+                        "plugins": {
+                            "authz-keycloak": {
+                                "token_endpoint": "https://127.0.0.1:8443/realms/University/protocol/openid-connect/token",
+                                "permissions": ["course_resource#view"],
+                                "client_id": "course_management",
+                                "client_secret": "$secret://vault/testauthz/route/secret_key",
+                                "grant_type": "urn:ietf:params:oauth:grant-type:uma-ticket",
+                                "timeout": 3000,
+                                "ssl_verify": false,
+                                "password_grant_token_generation_incoming_uri": "/api/token"
+                            }
                         },
-                        "type": "roundrobin"
-                    },
-                    "uri": "/api/token"
+                        "upstream": {
+                            "nodes": {
+                                "127.0.0.1:1982": 1
+                            },
+                            "type": "roundrobin"
+                        },
+                        "uri": "/api/token"
                 }]]
                 )
 
@@ -115,9 +100,10 @@ passed
 
 === TEST 2: store secret into vault
 --- exec
-VAULT_TOKEN='root' VAULT_ADDR='http://0.0.0.0:8200' vault kv put kv/apisix/jack secret_key=d1ec69e9-55d2-4109-a3ea-befa071579d5
+VAULT_TOKEN='root' VAULT_ADDR='http://0.0.0.0:8200' vault kv put kv/apisix/route secret_key=d1ec69e9-55d2-4109-a3ea-befa071579d5
 --- response_body
-Success! Data written to: kv/apisix/jack
+Success! Data written to: kv/apisix/route
+
 
 
 === TEST 3: verify: ok
