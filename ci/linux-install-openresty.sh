@@ -17,6 +17,10 @@
 #
 set -euo pipefail
 
+source ./ci/common.sh
+
+export_version_info
+
 ARCH=${ARCH:-`(uname -m | tr '[:upper:]' '[:lower:]')`}
 arch_path=""
 if [[ $ARCH == "arm64" ]] || [[ $ARCH == "aarch64" ]]; then
@@ -24,13 +28,14 @@ if [[ $ARCH == "arm64" ]] || [[ $ARCH == "aarch64" ]]; then
 fi
 
 wget -qO - https://openresty.org/package/pubkey.gpg | sudo apt-key add -
+wget -qO - http://repos.apiseven.com/pubkey.gpg | sudo apt-key add -
 sudo apt-get -y update --fix-missing
 sudo apt-get -y install software-properties-common
 sudo add-apt-repository -y "deb https://openresty.org/package/${arch_path}ubuntu $(lsb_release -sc) main"
+sudo add-apt-repository -y "deb http://repos.apiseven.com/packages/${arch_path}debian bullseye main"
 
 sudo apt-get update
-
-abt_branch=${abt_branch:="master"}
+sudo apt-get install -y openresty-openssl111 openresty-openssl111-dev libldap2-dev openresty-pcre openresty-zlib
 
 COMPILE_OPENSSL3=${COMPILE_OPENSSL3-no}
 USE_OPENSSL3=${USE_OPENSSL3-no}
@@ -89,10 +94,6 @@ fi
 export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${openssl_prefix}/include"
 export ld_opt="-L${openssl_prefix}/lib -Wl,-rpath,${openssl_prefix}/lib"
 
-if [ "$OPENRESTY_VERSION" == "default" ]; then
-    openresty='openresty-debug'
-else
-    openresty="openresty-debug=$OPENRESTY_VERSION*"
-fi
-
-sudo apt-get install "$openresty" libldap2-dev
+wget "https://raw.githubusercontent.com/api7/apisix-build-tools/apisix-runtime/${APISIX_RUNTIME}/build-apisix-runtime.sh"
+chmod +x build-apisix-runtime.sh
+./build-apisix-runtime.sh latest

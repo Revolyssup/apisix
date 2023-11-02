@@ -30,12 +30,13 @@ install_openssl_3(){
     OPENSSL_PREFIX=$(pwd)
     export LD_LIBRARY_PATH=$OPENSSL_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     echo "$LD_LIBRARY_PATH"
-    export ENV_OPENSSL_PREFIX=$OPENSSL3_PREFIX/openssl-3.1.3
-    export openssl_prefix=$OPENSSL3_PREFIX/openssl-3.1.3
+    export ENV_OPENSSL_PREFIX=$OPENSSL_PREFIX/openssl-3.1.3
+    export openssl_prefix=$OPENSSL_PREFIX/openssl-3.1.3
     cd ..
 }
 
 install_dependencies() {
+    export_version_info
     export_or_prefix
 
     # install build & runtime deps
@@ -48,10 +49,21 @@ install_dependencies() {
     yum install -y libnghttp2-devel
     install_curl
 
+    yum -y install centos-release-scl
+    yum -y install devtoolset-9 patch wget git make sudo
+    set +eu
+    source scl_source enable devtoolset-9
+    set -eu
+
     # install openresty to make apisix's rpm test work
     yum install -y yum-utils && yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo
-    yum install -y openresty-1.21.4.2 openresty-debug-1.21.4.2 pcre pcre-devel
     install_openssl_3
+    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/apisix-runtime/${APISIX_RUNTIME}/build-apisix-runtime-debug-centos7.sh"
+    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/apisix-runtime/${APISIX_RUNTIME}/build-apisix-runtime.sh"
+    chmod +x build-apisix-runtime-debug-centos7.sh
+    chmod +x build-apisix-runtime.sh
+    ./build-apisix-runtime-debug-centos7.sh
+
     # install luarocks
     ./utils/linux-install-luarocks.sh
 
@@ -75,14 +87,9 @@ install_dependencies() {
     cd t/grpc_server_example
 
     CGO_ENABLED=0 go build
-    ./grpc_server_example \
-        -grpc-address :50051 -grpcs-address :50052 -grpcs-mtls-address :50053 -grpc-http-address :50054 \
-        -crt ../certs/apisix.crt -key ../certs/apisix.key -ca ../certs/mtls_ca.crt \
-        > grpc_server_example.log 2>&1 || (cat grpc_server_example.log && exit 1)&
-
     cd ../../
-    # wait for grpc_server_example to fully start
-    sleep 3
+
+    start_grpc_server_example
 
     # installing grpcurl
     install_grpcurl
