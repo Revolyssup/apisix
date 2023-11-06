@@ -27,17 +27,37 @@ do_install() {
     ./utils/linux-install-luarocks.sh
     ./ci/linux-install-etcd-client.sh
 }
+install_openssl_3(){
+    # required for openssl 3.x config
+    cpanm IPC/Cmd.pm
+    wget --no-check-certificate  https://www.openssl.org/source/openssl-3.1.3.tar.gz
+    tar xvf openssl-*.tar.gz
+    cd openssl-*/
+    ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
+    make -j $(nproc)
+    make install
+    OPENSSL_PREFIX=$(pwd)
+    export LD_LIBRARY_PATH=$OPENSSL_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+    echo "$LD_LIBRARY_PATH"
+    export openssl_prefix=$OPENSSL3_PREFIX
+    export ENV_OPENSSL_PREFIX=$OPENSSL3_PREFIX
+    cd ..
+}
+
+
 
 script() {
     export_or_prefix
     openresty -V
 
     sudo rm -rf /usr/local/apisix
-
+    install_openssl_3
     # run the test case in an empty folder
     mkdir tmp && cd tmp
     cp -r ../utils ./
-
+    echo $openssl_prefix
+	luarocks config --local variables.OPENSSL_LIBDIR "$openssl_prefix"; \
+	luarocks config --local variables.OPENSSL_INCDIR "$openssl_prefix/include" ;
     # install APISIX by luarocks
     luarocks install $APISIX_MAIN > build.log 2>&1 || (cat build.log && exit 1)
     cp ../bin/apisix /usr/local/bin/apisix
