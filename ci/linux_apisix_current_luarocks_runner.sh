@@ -27,23 +27,18 @@ do_install() {
     ./utils/linux-install-luarocks.sh
     ./ci/linux-install-etcd-client.sh
 }
+OPENSSL3_PREFIX=${OPENSSL3_PREFIX:-`pwd`}
 install_openssl_3(){
     # required for openssl 3.x config
     cpanm IPC/Cmd.pm
-    wget --no-check-certificate  https://www.openssl.org/source/openssl-3.1.3.tar.gz
+    wget --no-check-certificate https://www.openssl.org/source/openssl-3.1.3.tar.gz
     tar xvf openssl-*.tar.gz
-    cd openssl-*/
-    ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
+    cd openssl-3.1.3
+    ./config 
     make -j $(nproc)
     make install
-    OPENSSL_PREFIX=$(pwd)
-    export LD_LIBRARY_PATH=$OPENSSL_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-    echo $OPENSSL_PREFIX
-    echo "content in $OPENSSL_PREFIX"
-    ls $OPENSSL_PREFIX
-    echo $OPENSSL_PREFIX > /etc/ld.so.conf.d/openssl3.conf
+    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
     ldconfig
-    export openssl_prefix=$OPENSSL_PREFIX
     cd ..
 }
 
@@ -52,8 +47,9 @@ script() {
     export_or_prefix
     openresty -V
     install_openssl_3
+    export openssl_prefix="$OPENSSL3_PREFIX/openssl-3.1.3"
     sudo rm -rf /usr/local/share/lua/5.1/apisix
-    echo $openssl_prefix
+
     luarocks config --local variables.OPENSSL_LIBDIR "$openssl_prefix"; \
     luarocks config --local variables.OPENSSL_INCDIR "$openssl_prefix/include" ;
     # install APISIX with local version
