@@ -23,12 +23,16 @@ install_openssl_3(){
     cpanm IPC/Cmd.pm
     wget --no-check-certificate https://www.openssl.org/source/openssl-3.1.3.tar.gz
     tar xvf openssl-*.tar.gz
-    cd openssl-3.1.3
-    ./config 
+    cd openssl-3.1.3 --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
+    ./config
     make -j $(nproc)
     make install
     OPENSSL3_PREFIX=$(pwd)
-    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
+    export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+    echo $OPENSSL3_PREFIX
+    echo "content in $OPENSSL3_PREFIX"
+    ls $OPENSSL3_PREFIX
+    echo $OPENSSL3_PREFIX > /etc/ld.so.conf.d/openssl3.conf
     ldconfig
     export openssl_prefix="$OPENSSL3_PREFIX"
     cd ..

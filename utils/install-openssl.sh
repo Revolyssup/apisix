@@ -22,7 +22,7 @@ wget --no-check-certificate https://www.openssl.org/source/openssl-3.1.3.tar.gz
 tar xvf openssl-*.tar.gz
 cd openssl-3.1.3
 OPENSSL3_PREFIX=$(pwd)
-./config 
+./config
 make -j $(nproc)
 make install
 export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64

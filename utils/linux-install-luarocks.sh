@@ -34,7 +34,7 @@ if [[ -e $OR_BIN && "$OR_VER" -ge 119 ]]; then
     WITH_LUA_OPT="--with-lua=${OPENRESTY_PREFIX}/luajit"
 else
     # For old version OpenResty, we still need to install LuaRocks with Lua
-   WITH_LUA_OPT="--with-lua=${OPENRESTY_PREFIX}/luajit"
+   WITH_LUA_OPT=
 fi
 
 ./configure $WITH_LUA_OPT \
