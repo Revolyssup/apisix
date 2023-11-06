@@ -40,7 +40,6 @@ sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib
 COMPILE_OPENSSL3=${COMPILE_OPENSSL3-no}
 USE_OPENSSL3=${USE_OPENSSL3-no}
 SSL_LIB_VERSION=${SSL_LIB_VERSION-openssl}
-OPENSSL3_PREFIX=${OPENSSL3_PREFIX:-`pwd`}
 
 install_openssl_3(){
     # required for openssl 3.x config
@@ -48,16 +47,17 @@ install_openssl_3(){
     wget --no-check-certificate https://www.openssl.org/source/openssl-3.1.3.tar.gz
     tar xvf openssl-*.tar.gz
     cd openssl-3.1.3
+    OPENSSL3_PREFIX=$(pwd)
     ./config 
     make -j $(nproc)
     make install
     export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
     ldconfig
+    export openssl_prefix="$OPENSSL3_PREFIX"
     cd ..
 }
 
 install_openssl_3
-export openssl_prefix="$OPENSSL3_PREFIX/openssl-3.1.3"
 if [ "$OPENRESTY_VERSION" == "source" ]; then
     export zlib_prefix=/usr/local/openresty/zlib
     export pcre_prefix=/usr/local/openresty/pcre

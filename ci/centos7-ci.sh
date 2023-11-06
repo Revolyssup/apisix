@@ -17,7 +17,7 @@
 #
 
 . ./ci/common.sh
-OPENSSL3_PREFIX=${OPENSSL3_PREFIX:-`pwd`}
+
 install_openssl_3(){
     # required for openssl 3.x config
     cpanm IPC/Cmd.pm
@@ -27,8 +27,10 @@ install_openssl_3(){
     ./config 
     make -j $(nproc)
     make install
+    OPENSSL3_PREFIX=$(pwd)
     export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
     ldconfig
+    export openssl_prefix="$OPENSSL3_PREFIX"
     cd ..
 }
 
@@ -55,7 +57,6 @@ install_dependencies() {
     # install openresty to make apisix's rpm test work
     yum install -y yum-utils && yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo
     install_openssl_3
-    export openssl_prefix="$OPENSSL3_PREFIX/openssl-3.1.3"
     wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime-debug-centos7.sh"
     wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
     chmod +x build-apisix-runtime-debug-centos7.sh
