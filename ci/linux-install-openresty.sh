@@ -54,6 +54,7 @@ install_openssl_3(){
     export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
     ldconfig
     export openssl_prefix="$OPENSSL3_PREFIX"
+
     cd ..
 }
 
@@ -84,7 +85,7 @@ if [ "$OPENRESTY_VERSION" == "source" ]; then
     ./build-apisix-base.sh latest
 
     sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib
-
+    echo "THIS IS OPENSSL PREFIX in install-openresty $openssl_prefix"
     exit 0
 fi
 
@@ -94,3 +95,4 @@ export ld_opt="-L${openssl_prefix}/lib -Wl,-rpath,${openssl_prefix}/lib"
 wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
 chmod +x build-apisix-runtime.sh
 ./build-apisix-runtime.sh latest
+echo "THIS IS OPENSSL PREFIX in install-openresty $openssl_prefix"
