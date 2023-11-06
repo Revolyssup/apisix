@@ -62,7 +62,8 @@ install_dependencies() {
     ./build-apisix-runtime-debug-centos7.sh
 
     # install luarocks
-    ./utils/linux-install-luarocks.sh
+    echo "THIS IS OPENSSL PREFIX $openssl_prefix"
+    openssl_prefix=$openssl_prefix ./utils/linux-install-luarocks.sh
 
     # install etcdctl
     ./ci/linux-install-etcd-client.sh

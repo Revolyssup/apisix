@@ -53,7 +53,8 @@ jobs:
         sudo apt-get install -y git openresty curl unzip make gcc libldap2-dev cpanminus
         sudo chmod +x ./utils/install-openssl.sh
         ./utils/install-openssl.sh
-        ./utils/linux-install-luarocks.sh
+            echo "THIS IS OPENSSL PREFIX $openssl_prefix"
+    openssl_prefix=$openssl_prefix ./utils/linux-install-luarocks.sh
 
         make deps
         make init
