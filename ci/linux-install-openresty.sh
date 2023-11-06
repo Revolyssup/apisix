@@ -35,7 +35,7 @@ sudo add-apt-repository -y "deb https://openresty.org/package/${arch_path}ubuntu
 sudo add-apt-repository -y "deb http://repos.apiseven.com/packages/${arch_path}debian bullseye main"
 
 sudo apt-get update
-sudo apt-get install -y openresty-openssl111 openresty-openssl111-dev libldap2-dev openresty-pcre openresty-zlib
+sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib
 
 COMPILE_OPENSSL3=${COMPILE_OPENSSL3-no}
 USE_OPENSSL3=${USE_OPENSSL3-no}
@@ -82,7 +82,7 @@ if [ "$OPENRESTY_VERSION" == "source" ]; then
         export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${zlib_prefix}/include -I${pcre_prefix}/include -I${openssl_prefix}/include"
         export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib"
     fi
-    wget -q https://raw.githubusercontent.com/revolyssup/apisix-build-tools/revolyssup/upgrade-apisix-base-openssl3/build-apisix-base.sh
+    wget -q https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-base.sh
     chmod +x build-apisix-base.sh
     ./build-apisix-base.sh latest
 
