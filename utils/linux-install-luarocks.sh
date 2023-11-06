@@ -47,14 +47,11 @@ rm -rf luarocks-"$LUAROCKS_VER"
 
 mkdir ~/.luarocks || true
 
-# OpenResty 1.17.8 or higher version uses openssl111 as the openssl dirname.
-OPENSSL_PREFIX=/usr/bin/openssl
-
 FOUND_PATH=$(echo "${PATH}" | grep -oP '(?<=:|)/usr/local/bin(?=:|)') || true
 if [[ "${FOUND_PATH}" == "" ]]; then
    echo "Warning: the path /usr/local/bin is not included in the system default PATH variable."
    export PATH=$PATH:/usr/local/bin
 fi
 
-luarocks config variables.OPENSSL_LIBDIR ${OPENSSL_PREFIX}/lib
-luarocks config variables.OPENSSL_INCDIR ${OPENSSL_PREFIX}/include
+luarocks config variables.OPENSSL_LIBDIR ${openssl_prefix}/lib
+luarocks config variables.OPENSSL_INCDIR ${openssl_prefix}/include

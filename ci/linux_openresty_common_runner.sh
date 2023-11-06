@@ -31,8 +31,6 @@ do_install() {
     ./utils/linux-install-luarocks.sh
 
     ./ci/linux-install-etcd-client.sh
-    luarocks config --local variables.OPENSSL_LIBDIR "$openssl_prefix"; \
-    luarocks config --local variables.OPENSSL_INCDIR "$openssl_prefix/include" ;
     create_lua_deps
 
     # sudo apt-get install tree -y
