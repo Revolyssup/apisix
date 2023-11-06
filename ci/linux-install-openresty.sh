@@ -54,8 +54,8 @@ install_openssl_3(){
     OPENSSL_PREFIX=$(pwd)
     export LD_LIBRARY_PATH=$OPENSSL_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     echo "$LD_LIBRARY_PATH"
-    export openssl_prefix=$OPENSSL3_PREFIX/openssl-3.1.3
-    export ENV_OPENSSL_PREFIX=$OPENSSL3_PREFIX/openssl-3.1.3
+    export openssl_prefix=$OPENSSL3_PREFIX
+    export ENV_OPENSSL_PREFIX=$OPENSSL3_PREFIX
     cd ..
 }
 
@@ -94,6 +94,6 @@ fi
 export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${openssl_prefix}/include"
 export ld_opt="-L${openssl_prefix}/lib -Wl,-rpath,${openssl_prefix}/lib"
 
-wget "https://raw.githubusercontent.com/api7/apisix-build-tools/apisix-runtime/${APISIX_RUNTIME}/build-apisix-runtime.sh"
+wget "https://raw.githubusercontent.com/api7/apisix-build-tools/master/build-apisix-runtime.sh"
 chmod +x build-apisix-runtime.sh
 ./build-apisix-runtime.sh latest

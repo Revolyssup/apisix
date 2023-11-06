@@ -17,6 +17,24 @@
 #
 
 . ./ci/common.sh
+
+install_openssl_3(){
+    # required for openssl 3.x config
+    cpanm IPC/Cmd.pm
+    wget --no-check-certificate  https://www.openssl.org/source/openssl-3.1.3.tar.gz
+    tar xvf openssl-*.tar.gz
+    cd openssl-*/
+    ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
+    make -j $(nproc)
+    make install
+    OPENSSL_PREFIX=$(pwd)
+    export LD_LIBRARY_PATH=$OPENSSL_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+    echo "$LD_LIBRARY_PATH"
+    export ENV_OPENSSL_PREFIX=$OPENSSL_PREFIX
+    export openssl_prefix=$OPENSSL_PREFIX
+    cd ..
+}
+
 install_dependencies() {
     export_version_info
     export_or_prefix
@@ -36,9 +54,9 @@ install_dependencies() {
     rpm --import https://repos.apiseven.com/KEYS
     yum install -y openresty-openssl111 openresty-openssl111-devel pcre pcre pcre-devel xz
     yum -y install https://repos.apiseven.com/packages/centos/apache-apisix-repo-1.0-1.noarch.rpm
-
-    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/apisix-runtime/${APISIX_RUNTIME}/build-apisix-runtime-debug-centos7.sh"
-    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/apisix-runtime/${APISIX_RUNTIME}/build-apisix-runtime.sh"
+    install_openssl_3
+    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime-debug-centos7.sh"
+    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
     chmod +x build-apisix-runtime.sh
     chmod +x build-apisix-runtime-debug-centos7.sh
     ./build-apisix-runtime-debug-centos7.sh

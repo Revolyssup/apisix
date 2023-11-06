@@ -30,8 +30,8 @@ install_openssl_3(){
     OPENSSL_PREFIX=$(pwd)
     export LD_LIBRARY_PATH=$OPENSSL_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     echo "$LD_LIBRARY_PATH"
-    export ENV_OPENSSL_PREFIX=$OPENSSL_PREFIX/openssl-3.1.3
-    export openssl_prefix=$OPENSSL_PREFIX/openssl-3.1.3
+    export ENV_OPENSSL_PREFIX=$OPENSSL_PREFIX
+    export openssl_prefix=$OPENSSL_PREFIX
     cd ..
 }
 
@@ -58,8 +58,8 @@ install_dependencies() {
     # install openresty to make apisix's rpm test work
     yum install -y yum-utils && yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo
     install_openssl_3
-    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/apisix-runtime/${APISIX_RUNTIME}/build-apisix-runtime-debug-centos7.sh"
-    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/apisix-runtime/${APISIX_RUNTIME}/build-apisix-runtime.sh"
+    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime-debug-centos7.sh"
+    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
     chmod +x build-apisix-runtime-debug-centos7.sh
     chmod +x build-apisix-runtime.sh
     ./build-apisix-runtime-debug-centos7.sh
