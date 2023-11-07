@@ -56,8 +56,8 @@ script() {
     # run the test case in an empty folder
     mkdir tmp && cd tmp
     cp -r ../utils ./
-    luarocks config --local variables.OPENSSL_LIBDIR "$openssl_prefix"; \
-    luarocks config --local variables.OPENSSL_INCDIR "$openssl_prefix/include" ;
+    luarocks config variables.OPENSSL_LIBDIR "$openssl_prefix"; \
+    luarocks config variables.OPENSSL_INCDIR "$openssl_prefix/include" ;
     # install APISIX by luarocks
     luarocks install $APISIX_MAIN > build.log 2>&1 || (cat build.log && exit 1)
     cp ../bin/apisix /usr/local/bin/apisix
