@@ -25,7 +25,7 @@ OPENSSL3_PREFIX=$(pwd)
 ./config
 make -j $(nproc)
 make install
-export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
+export LD_LIBRARY_PATH=$OPENSSL_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 ldconfig
 export openssl_prefix="$OPENSSL3_PREFIX"
 cd ..
