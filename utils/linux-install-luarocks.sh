@@ -54,4 +54,4 @@ if [[ "${FOUND_PATH}" == "" ]]; then
 fi
 
 luarocks config variables.OPENSSL_LIBDIR /usr/local/openssl/lib
-luarocks config variables.OPENSSL_INCDIR /usr/local/openssl/include
+luarocks config variables.OPENSSL_INCDIR /usr/local/openssl/include 
