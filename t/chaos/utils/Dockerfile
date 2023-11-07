@@ -34,7 +34,6 @@ RUN set -x \
     openldap-dev \
     pcre-dev \
     sudo \
-    cpanminus \
     && cd apisix \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make deps \
@@ -54,7 +53,10 @@ RUN set -x \
         libstdc++ \
         openldap \
         pcre \
-        tzdata
+        tzdata \
+        perl \
+        perl-dev \
+        perl-app-cpanminus 
 
 WORKDIR /usr/local/apisix
 
