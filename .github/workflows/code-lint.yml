@@ -22,9 +22,9 @@ jobs:
         export_or_prefix
         export OPENRESTY_VERSION=default
 
-        ./ci/linux-install-openresty.sh
-            echo "THIS IS OPENSSL PREFIX $openssl_prefix"
-    openssl_prefix=$openssl_prefix ./utils/linux-install-luarocks.sh
+        source ./ci/linux-install-openresty.sh
+        echo "THIS IS OPENSSL PREFIX $openssl_prefix"
+        ./utils/linux-install-luarocks.sh
         sudo luarocks install luacheck
 
     - name: Script
