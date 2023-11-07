@@ -34,6 +34,7 @@ RUN set -x \
     openldap-dev \
     pcre-dev \
     sudo \
+    cpanminus \
     && cd apisix \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make deps \
