@@ -35,7 +35,7 @@ sudo add-apt-repository -y "deb https://openresty.org/package/${arch_path}ubuntu
 sudo add-apt-repository -y "deb http://repos.apiseven.com/packages/${arch_path}debian bullseye main"
 
 sudo apt-get update
-sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib lua5.1 liblua5.1
+sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib lua5.1 liblua5.1 cpanminus
 
 COMPILE_OPENSSL3=${COMPILE_OPENSSL3-no}
 USE_OPENSSL3=${USE_OPENSSL3-no}
