@@ -78,14 +78,13 @@ if [ "$OPENRESTY_VERSION" == "source" ]; then
         export pcre_prefix=$OPENRESTY_PREFIX/pcre
 
         export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${zlib_prefix}/include -I${pcre_prefix}/include -I${openssl_prefix}/include"
-        export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib64 -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib64"
+        export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib"
     fi
     wget -q https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-base.sh
     chmod +x build-apisix-base.sh
     ./build-apisix-base.sh latest
 
     sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib
-    echo "THIS IS OPENSSL PREFIX in install-openresty $openssl_prefix"
 else
     export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${openssl_prefix}/include"
     export ld_opt="-L${openssl_prefix}/lib -Wl,-rpath,${openssl_prefix}/lib"
@@ -93,7 +92,6 @@ else
     wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
     chmod +x build-apisix-runtime.sh
     ./build-apisix-runtime.sh latest
-    echo "THIS IS OPENSSL PREFIX in install-openresty $openssl_prefix"
 fi
 
 
