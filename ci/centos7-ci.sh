@@ -28,7 +28,7 @@ install_openssl_3(){
     ./config
     make -j $(nproc)
     make install
-    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
+    export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     ldconfig
     export openssl_prefix="$OPENSSL3_PREFIX"
     cd ..
@@ -80,14 +80,15 @@ install_dependencies() {
     # add go1.15 binary to the path
     mkdir build-cache
     # centos-7 ci runs on a docker container with the centos image on top of ubuntu host. Go is required inside the container.
-    cd build-cache/ && wget -q https://golang.org/dl/go1.17.linux-amd64.tar.gz && tar -xf go1.17.linux-amd64.tar.gz
+    pushd build-cache/
+    wget -q https://golang.org/dl/go1.17.linux-amd64.tar.gz && tar -xf go1.17.linux-amd64.tar.gz
     export PATH=$PATH:$(pwd)/go/bin
-    cd ..
+    popd
     # install and start grpc_server_example
-    cd t/grpc_server_example
+    pushd t/grpc_server_example
 
     CGO_ENABLED=0 go build
-    cd ../../
+    popd
 
     start_grpc_server_example
 
@@ -98,10 +99,10 @@ install_dependencies() {
     install_nodejs
 
     # grpc-web server && client
-    cd t/plugin/grpc-web
+    pushd t/plugin/grpc-web
     ./setup.sh
     # back to home directory
-    cd ../../../
+    popd
 
     # install dependencies
     git clone https://github.com/openresty/test-nginx.git test-nginx

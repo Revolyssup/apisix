@@ -35,7 +35,7 @@ sudo add-apt-repository -y "deb https://openresty.org/package/${arch_path}ubuntu
 sudo add-apt-repository -y "deb http://repos.apiseven.com/packages/${arch_path}debian bullseye main"
 
 sudo apt-get update
-sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib lua5.1 liblua5.1
+sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib lua5.1 liblua5.1 cpanminus openresty
 
 COMPILE_OPENSSL3=${COMPILE_OPENSSL3-no}
 USE_OPENSSL3=${USE_OPENSSL3-no}
@@ -51,10 +51,9 @@ install_openssl_3(){
     ./config
     make -j $(nproc)
     make install
-    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64
+    export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     ldconfig
     export openssl_prefix="$OPENSSL3_PREFIX"
-
     cd ..
 }
 
@@ -78,21 +77,20 @@ if [ "$OPENRESTY_VERSION" == "source" ]; then
         export pcre_prefix=$OPENRESTY_PREFIX/pcre
 
         export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${zlib_prefix}/include -I${pcre_prefix}/include -I${openssl_prefix}/include"
-        export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib64 -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib64"
+        export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib"
     fi
     wget -q https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-base.sh
     chmod +x build-apisix-base.sh
     ./build-apisix-base.sh latest
 
     sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib
-    echo "THIS IS OPENSSL PREFIX in install-openresty $openssl_prefix"
-    exit 0
+else
+    export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${openssl_prefix}/include"
+    export ld_opt="-L${openssl_prefix}/lib -Wl,-rpath,${openssl_prefix}/lib"
+
+    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
+    chmod +x build-apisix-runtime.sh
+    ./build-apisix-runtime.sh latest
 fi
 
-export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${openssl_prefix}/include"
-export ld_opt="-L${openssl_prefix}/lib -Wl,-rpath,${openssl_prefix}/lib"
 
-wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
-chmod +x build-apisix-runtime.sh
-./build-apisix-runtime.sh latest
-echo "THIS IS OPENSSL PREFIX in install-openresty $openssl_prefix"
