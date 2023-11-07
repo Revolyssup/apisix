@@ -52,6 +52,7 @@ if [[ "${FOUND_PATH}" == "" ]]; then
    echo "Warning: the path /usr/local/bin is not included in the system default PATH variable."
    export PATH=$PATH:/usr/local/bin
 fi
-echo $openssl_prefix
+echo "configuring luarock"
 luarocks config variables.OPENSSL_LIBDIR $openssl_prefix
 luarocks config variables.OPENSSL_INCDIR $openssl_prefix/include
+ls $openssl_prefix
