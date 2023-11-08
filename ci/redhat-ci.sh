@@ -37,12 +37,13 @@ install_dependencies() {
     rpm --import https://repos.apiseven.com/KEYS
     yum install -y pcre pcre pcre-devel xz
     yum -y install https://repos.apiseven.com/packages/centos/apache-apisix-repo-1.0-1.noarch.rpm
+    #install openssl3
     . ./utils/install-openssl.sh
 
     wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime-debug-centos7.sh"
     wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
-    chmod +x build-apisix-runtime.sh
     chmod +x build-apisix-runtime-debug-centos7.sh
+    chmod +x build-apisix-runtime.sh
     ./build-apisix-runtime-debug-centos7.sh
 
     # install luarocks
