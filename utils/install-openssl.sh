@@ -27,7 +27,7 @@ if [ ! -d "$(pwd)/openssl-3.1.3" ]; then
     make -j $(nproc)
     sudo make install
     export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-    ldconfig
+    sudo ldconfig
     export openssl_prefix="$OPENSSL3_PREFIX"
     cd ..
 fi
