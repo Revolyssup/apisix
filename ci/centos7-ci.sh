@@ -29,7 +29,7 @@ install_openssl_3(){
     make -j $(nproc)
     make install
     ldconfig
-    export LD_LIBRARY_PATH=/usr/local/openssl/lib:/usr/local/openssl/lib64:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/usr/local/openssl/lib:/usr/local/openssl/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     echo $LD_LIBRARY_PATH
     export openssl_prefix="$OPENSSL3_PREFIX"
     cd ..
@@ -41,15 +41,15 @@ install_dependencies() {
 
     # install build & runtime deps
     yum install -y wget tar gcc automake autoconf libtool make unzip \
-        git sudo openldap-devel which ca-certificates \
+        git sudo openldap-devel openssl-devel which ca-certificates \
         epel-release cpanminus
 
     # install newer curl
     yum makecache
     yum install -y libnghttp2-devel
-    install_openssl_3
     install_curl
-
+    #install openssl3
+    install_openssl_3
     yum -y install centos-release-scl
     yum -y install devtoolset-9 patch wget git make sudo
     set +eu
