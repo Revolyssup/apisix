@@ -21,7 +21,8 @@
 install_dependencies() {
     export_version_info
     export_or_prefix
-
+    #remove existing openssl
+    sudo yum -y remove openssl openssl-devel
     # install build & runtime deps
     yum install -y wget tar gcc automake autoconf libtool make unzip \
         git sudo openldap-devel openssl-devel which ca-certificates \
@@ -41,8 +42,6 @@ install_dependencies() {
     # install apisix-runtime to make apisix's rpm test work
     yum install -y yum-utils && yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo
 
-    #remove existing openssl
-    sudo yum -y remove openssl openssl-devel
     #install openssl3
     . ./utils/install-openssl.sh
 
