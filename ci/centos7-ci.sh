@@ -22,7 +22,7 @@ install_dependencies() {
     export_version_info
     export_or_prefix
     #remove existing openssl
-    sudo yum -y remove openssl openssl-devel
+    yum -y remove openssl openssl-devel
     # install build & runtime deps
     yum install -y wget tar gcc automake autoconf libtool make unzip \
         git sudo openldap-devel openssl-devel which ca-certificates \
