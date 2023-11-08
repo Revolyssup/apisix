@@ -31,6 +31,7 @@ install_openssl_3(){
     export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     echo $OPENSSL3_PREFIX > /etc/ld.so.conf.d/openssl3.conf
     ldconfig
+    ldconfig /usr/local/openssl/lib
     echo $LD_LIBRARY_PATH
     export openssl_prefix="$OPENSSL3_PREFIX"
     cd ..
