@@ -28,10 +28,8 @@ install_openssl_3(){
     ./config
     make -j $(nproc)
     make install
-    export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-    echo $OPENSSL3_PREFIX > /etc/ld.so.conf.d/openssl3.conf
     ldconfig
-    ldconfig /usr/local/openssl/lib
+    export LD_LIBRARY_PATH=/usr/local/openssl/lib:/usr/local/openssl/lib64:$LD_LIBRARY_PATH
     echo $LD_LIBRARY_PATH
     export openssl_prefix="$OPENSSL3_PREFIX"
     cd ..
