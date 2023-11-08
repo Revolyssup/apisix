@@ -18,23 +18,6 @@
 
 . ./ci/common.sh
 
-install_openssl_3(){
-    # required for openssl 3.x config
-    cpanm IPC/Cmd.pm
-    wget --no-check-certificate https://www.openssl.org/source/openssl-3.1.3.tar.gz
-    tar xvf openssl-*.tar.gz
-    cd openssl-3.1.3
-    OPENSSL3_PREFIX=$(pwd)
-    ./config
-    make -j $(nproc)
-    make install
-    ldconfig
-    export LD_LIBRARY_PATH=/usr/local/openssl/lib:/usr/local/openssl/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-    echo $LD_LIBRARY_PATH
-    export openssl_prefix="$OPENSSL3_PREFIX"
-    cd ..
-}
-
 install_dependencies() {
     export_version_info
     export_or_prefix
@@ -48,8 +31,7 @@ install_dependencies() {
     yum makecache
     yum install -y libnghttp2-devel
     install_curl
-    #install openssl3
-    install_openssl_3
+
     yum -y install centos-release-scl
     yum -y install devtoolset-9 patch wget git make sudo
     set +eu
@@ -58,6 +40,9 @@ install_dependencies() {
 
     # install openresty to make apisix's rpm test work
     yum install -y yum-utils && yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo
+    #install openssl3
+    . ./utils/install-openssl.sh
+
     wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime-debug-centos7.sh"
     wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
     chmod +x build-apisix-runtime-debug-centos7.sh
