@@ -17,15 +17,18 @@
 #
 set -ex
 # required for openssl 3.x config
-cpanm IPC/Cmd.pm
-wget --no-check-certificate https://www.openssl.org/source/openssl-3.1.3.tar.gz
-tar xvf openssl-*.tar.gz
-cd openssl-3.1.3
-OPENSSL3_PREFIX=$(pwd)
-./config
-make -j $(nproc)
-make install
-export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-ldconfig
-export openssl_prefix="$OPENSSL3_PREFIX"
-cd ..
+if [ ! -d "$(pwd)/openssl-3.1.3" ]; then
+    cpanm IPC/Cmd.pm
+    wget --no-check-certificate https://www.openssl.org/source/openssl-3.1.3.tar.gz
+    tar xvf openssl-*.tar.gz
+    cd openssl-3.1.3
+    OPENSSL3_PREFIX=$(pwd)
+    ./config
+    make -j $(nproc)
+    make install
+    export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+    ldconfig
+    export openssl_prefix="$OPENSSL3_PREFIX"
+    cd ..
+fi
+
