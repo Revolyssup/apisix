@@ -46,6 +46,7 @@ install_dependencies() {
     # install newer curl
     yum makecache
     yum install -y libnghttp2-devel
+    install_openssl_3
     install_curl
 
     yum -y install centos-release-scl
@@ -56,7 +57,6 @@ install_dependencies() {
 
     # install openresty to make apisix's rpm test work
     yum install -y yum-utils && yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo
-    install_openssl_3
     wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime-debug-centos7.sh"
     wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
     chmod +x build-apisix-runtime-debug-centos7.sh
