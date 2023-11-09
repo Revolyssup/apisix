@@ -43,9 +43,9 @@ ENV_NGINX_EXEC         := $(shell command -v openresty 2>/dev/null || command -v
 ENV_OPENSSL_PREFIX     ?= /usr/local/openssl
 ENV_OPENSSL_PREFIX := /usr/local/openssl
 ifeq ($(wildcard $(ENV_OPENSSL_PREFIX)/lib),)
-  OPENSSL_LIB_DIR := $(ENV_OPENSSL_PREFIX)/lib64 #When /lib doesn't exist
+	OPENSSL_LIB_DIR := $(ENV_OPENSSL_PREFIX)/lib64 #When /lib doesn't exist
 else
-  OPENSSL_LIB_DIR := $(ENV_OPENSSL_PREFIX)/lib
+	OPENSSL_LIB_DIR := $(ENV_OPENSSL_PREFIX)/lib
 endif
 ENV_LUAROCKS           ?= luarocks
 ## These variables can be injected by luarocks
