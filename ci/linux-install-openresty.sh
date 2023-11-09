@@ -61,7 +61,6 @@ elif [ "$OPENRESTY_VERSION" == "source" ]; then
     export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${zlib_prefix}/include -I${pcre_prefix}/include -I${openssl_prefix}/include"
     export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib"
     if [ "$COMPILE_FIPS" == "yes" ]; then
-        $openssl_prefix/bin/openssl fipsinstall -out $openssl_prefix/ssl/fipsmodule.cnf -module $openssl_prefix/lib/ossl-modules/fips.so
         sed -i 's@# .include fipsmodule.cnf@.include $openssl_prefix/ssl/fipsmodule.cnf@g; s/# \(fips = fips_sect\)/\1\nbase = base_sect\n\n[base_sect]\nactivate=1\n/g' $openssl_prefix/ssl/openssl.cnf
     fi
     ldconfig
