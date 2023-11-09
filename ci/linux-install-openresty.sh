@@ -37,8 +37,7 @@ sudo add-apt-repository -y "deb http://repos.apiseven.com/packages/${arch_path}d
 sudo apt-get update
 sudo apt-get install -y libldap2-dev openresty-pcre openresty-zlib lua5.1 liblua5.1 cpanminus openresty
 
-COMPILE_OPENSSL3=${COMPILE_OPENSSL3-no}
-USE_OPENSSL3=${USE_OPENSSL3-no}
+COMPILE_FIPS=${COMPILE_FIPS-no}
 SSL_LIB_VERSION=${SSL_LIB_VERSION-openssl}
 
 
@@ -50,14 +49,20 @@ if [ "$SSL_LIB_VERSION" == "tongsuo" ]; then
     export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${zlib_prefix}/include -I${pcre_prefix}/include -I${openssl_prefix}/include"
     export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib"
 elif [ "$OPENRESTY_VERSION" == "source" ]; then
+    if [ "$COMPILE_FIPS" == "yes" ]; then
+        . ./utils/install-openssl-fips.sh
+    else 
+        . ./utils/install-openssl.sh
+    fi
     . ./utils/install-openssl.sh
+    echo $openssl_prefix
     export zlib_prefix=/usr/local/openresty/zlib
     export pcre_prefix=/usr/local/openresty/pcre
     apt install -y build-essential
     export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${zlib_prefix}/include -I${pcre_prefix}/include -I${openssl_prefix}/include"
     export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib"
-    if [ "$COMPILE_OPENSSL3" == "yes" ]; then
-        $openssl_prefix/bin/openssl fipsinstall -out $openssl_prefix/ssl/fipsmodule.cnf -module $openssl_prefix/lib/ossl-modules/fips.so
+    if [ "$COMPILE_FIPS" == "yes" ]; then
+        /usr/local/openssl/bin/openssl fipsinstall -out $openssl_prefix/ssl/fipsmodule.cnf -module $openssl_prefix/lib/ossl-modules/fips.so
         sed -i 's@# .include fipsmodule.cnf@.include $openssl_prefix/ssl/fipsmodule.cnf@g; s/# \(fips = fips_sect\)/\1\nbase = base_sect\n\n[base_sect]\nactivate=1\n/g' $openssl_prefix/ssl/openssl.cnf
     fi
     ldconfig
