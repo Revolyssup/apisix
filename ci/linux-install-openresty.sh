@@ -60,9 +60,6 @@ elif [ "$OPENRESTY_VERSION" == "source" ]; then
     apt install -y build-essential
     export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${zlib_prefix}/include -I${pcre_prefix}/include -I${openssl_prefix}/include"
     export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib"
-    if [ "$COMPILE_FIPS" == "yes" ]; then
-        sed -i 's@# .include fipsmodule.cnf@.include $openssl_prefix/ssl/fipsmodule.cnf@g; s/# \(fips = fips_sect\)/\1\nbase = base_sect\n\n[base_sect]\nactivate=1\n/g' $openssl_prefix/ssl/openssl.cnf
-    fi
     ldconfig
 
     wget -q https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-base.sh
