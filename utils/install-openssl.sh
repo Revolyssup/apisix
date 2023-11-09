@@ -23,12 +23,13 @@ if [ ! -d "$(pwd)/openssl-3.1.3" ]; then
     tar xvf openssl-*.tar.gz
     cd openssl-3.1.3
     OPENSSL3_PREFIX=$(pwd)
-    ./config
+    ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
     make -j $(nproc)
     sudo make install
     export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     sudo ldconfig
     export openssl_prefix="$OPENSSL3_PREFIX"
+    ls /usr/local/openssl
     cd ..
 fi
 
