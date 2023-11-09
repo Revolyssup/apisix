@@ -24,7 +24,7 @@ jobs:
         sudo apt-get install --reinstall ca-certificates
         . ./ci/linux-install-openresty.sh
         echo "THIS IS OPENSSL PREFIX $openssl_prefix"
-        ./utils/linux-install-luarocks.sh
+        . ./utils/linux-install-luarocks.sh
         sudo luarocks install luacheck
 
     - name: Script

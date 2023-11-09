@@ -29,7 +29,7 @@ do_install() {
     . ./ci/linux-install-openresty.sh
 
     echo "THIS IS OPENSSL PREFIX $openssl_prefix"
-    openssl_prefix=$openssl_prefix ./utils/linux-install-luarocks.sh
+    . ./utils/linux-install-luarocks.sh
 
     ./ci/linux-install-etcd-client.sh
     create_lua_deps
