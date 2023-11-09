@@ -51,7 +51,7 @@ if [ "$SSL_LIB_VERSION" == "tongsuo" ]; then
 elif [ "$OPENRESTY_VERSION" == "source" ]; then
     if [ "$COMPILE_FIPS" == "yes" ]; then
         . ./utils/install-openssl-fips.sh
-    else 
+    else
         . ./utils/install-openssl.sh
     fi
     . ./utils/install-openssl.sh
