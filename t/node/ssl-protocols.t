@@ -290,7 +290,7 @@ passed
 
 
 
-=== TEST 15: Failed, access test.com with TLSv1.3
+=== TEST 14: Failed, access test.com with TLSv1.3
 --- exec
 echo -n "Q"  | $OPENSSL_BIN s_client -connect 127.0.0.1:1994 -servername test.com -tls1_3 2>&1 | cat
 --- response_body eval
