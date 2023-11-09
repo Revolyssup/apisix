@@ -41,23 +41,8 @@ COMPILE_OPENSSL3=${COMPILE_OPENSSL3-no}
 USE_OPENSSL3=${USE_OPENSSL3-no}
 SSL_LIB_VERSION=${SSL_LIB_VERSION-openssl}
 
-install_openssl_3(){
-    # required for openssl 3.x config
-    cpanm IPC/Cmd.pm
-    wget --no-check-certificate https://www.openssl.org/source/openssl-3.1.3.tar.gz
-    tar xvf openssl-*.tar.gz
-    cd openssl-3.1.3
-    OPENSSL3_PREFIX=$(pwd)
-    ./config
-    make -j $(nproc)
-    make install
-    export LD_LIBRARY_PATH=$OPENSSL3_PREFIX${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-    ldconfig
-    export openssl_prefix="$OPENSSL3_PREFIX"
-    cd ..
-}
 
-install_openssl_3
+. ./utils/install-openssl.sh
 if [ "$OPENRESTY_VERSION" == "source" ]; then
     export zlib_prefix=/usr/local/openresty/zlib
     export pcre_prefix=/usr/local/openresty/pcre
