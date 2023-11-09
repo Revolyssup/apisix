@@ -52,6 +52,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y git openresty curl unzip make gcc libldap2-dev cpanminus
         sudo chmod +x ./utils/install-openssl.sh
+        . /utils/install-openssl.sh
         . ./utils/linux-install-luarocks.sh
 
         make deps

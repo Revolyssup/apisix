@@ -153,7 +153,7 @@ help:
 
 ### deps : Installing dependencies
 .PHONY: deps
-deps: runtime openssl3
+deps: runtime
 	ls $(ENV_OPENSSL_PREFIX)
 	ls $(ENV_OPENSSL_PREFIX)/include
 	$(eval ENV_LUAROCKS_VER := $(shell $(ENV_LUAROCKS) --version | grep -E -o "luarocks [0-9]+."))
