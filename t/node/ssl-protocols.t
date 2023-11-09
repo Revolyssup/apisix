@@ -149,15 +149,7 @@ qr/TLSv1\.2 \(IN\), TLS handshake, Server hello(?s).*hello world/
 
 
 
-=== TEST 6: Successfully, access test.com with TLSv1.1
---- exec
-echo -n "Q"  | $OPENSSL_BIN s_client -connect 127.0.0.1:1994 -servername test.com 2>&1 | cat
---- response_body eval
-qr/Server certificate/
-
-
-
-=== TEST 7: set TLSv1.2 and TLSv1.3 for test.com
+=== TEST 6: set TLSv1.2 and TLSv1.3 for test.com
 --- config
     location /t {
         content_by_lua_block {
@@ -191,7 +183,7 @@ passed
 
 
 
-=== TEST 8: Set TLSv1.3 for the test2.com
+=== TEST 7: Set TLSv1.3 for the test2.com
 --- config
 location /t {
     content_by_lua_block {
@@ -224,7 +216,7 @@ GET /t
 
 
 
-=== TEST 9: Successfully, access test.com with TLSv1.3
+=== TEST 8: Successfully, access test.com with TLSv1.3
 --- exec
 echo -n "Q"  | $OPENSSL_BIN s_client -connect 127.0.0.1:1994 -servername test.com -tls1_3 2>&1 | cat
 --- response_body eval
@@ -232,7 +224,7 @@ qr/Server certificate/
 
 
 
-=== TEST 10: Successfully, access test.com with TLSv1.2
+=== TEST 9: Successfully, access test.com with TLSv1.2
 --- exec
 curl -k -v --tls-max 1.2 --tlsv1.2 --resolve "test.com:1994:127.0.0.1" https://test.com:1994/hello 2>&1 | cat
 --- response_body eval
@@ -240,7 +232,7 @@ qr/TLSv1\.2 \(IN\), TLS handshake, Server hello(?s).*hello world/
 
 
 
-=== TEST 11: Successfully, access test2.com with TLSv1.3
+=== TEST 10: Successfully, access test2.com with TLSv1.3
 --- exec
 echo -n "Q"  | $OPENSSL_BIN s_client -connect 127.0.0.1:1994 -servername test2.com -tls1_3 2>&1 | cat
 --- response_body eval
@@ -248,7 +240,7 @@ qr/Server certificate/
 
 
 
-=== TEST 12: Failed, access test2.com with TLSv1.2
+=== TEST 11: Failed, access test2.com with TLSv1.2
 --- exec
 curl -k -v --tls-max 1.2 --tlsv1.2 --resolve "test2.com:1994:127.0.0.1" https://test2.com:1994/hello 2>&1 | cat
 --- response_body eval
@@ -256,7 +248,7 @@ qr/TLSv1\.2 \(IN\), TLS alert/
 
 
 
-=== TEST 13: set TLSv1.1 for test.com
+=== TEST 12: set TLSv1.1 for test.com
 --- config
     location /t {
         content_by_lua_block {
@@ -290,7 +282,7 @@ passed
 
 
 
-=== TEST 14: Failed, access test.com with TLSv1.3
+=== TEST 13: Failed, access test.com with TLSv1.3
 --- exec
 echo -n "Q"  | $OPENSSL_BIN s_client -connect 127.0.0.1:1994 -servername test.com -tls1_3 2>&1 | cat
 --- response_body eval
