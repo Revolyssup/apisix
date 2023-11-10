@@ -24,7 +24,7 @@ export_version_info() {
 export_or_prefix() {
     export OPENRESTY_PREFIX="/usr/local/openresty"
     export APISIX_MAIN="https://raw.githubusercontent.com/apache/apisix/master/rockspec/apisix-master-0.rockspec"
-    export OPENSSL_BIN=/usr/local/openssl/bin
+    export OPENSSL_BIN=/usr/local/bin/openssl
     export PATH=$OPENSSL_BIN:$OPENRESTY_PREFIX/nginx/sbin:$OPENRESTY_PREFIX/luajit/bin:$OPENRESTY_PREFIX/bin:$PATH
 }
 
