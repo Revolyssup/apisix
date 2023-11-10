@@ -45,8 +45,8 @@ install_dependencies() {
     #install openssl3
     . ./utils/install-openssl.sh
     ls /usr/local/openssl
-    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime-debug-centos7.sh"
-    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
+    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/master/build-apisix-runtime-debug-centos7.sh"
+    wget "https://raw.githubusercontent.com/api7/apisix-build-tools/master/build-apisix-runtime.sh"
     chmod +x build-apisix-runtime-debug-centos7.sh
     chmod +x build-apisix-runtime.sh
     ./build-apisix-runtime-debug-centos7.sh
