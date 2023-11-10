@@ -47,7 +47,7 @@ if [ "$SSL_LIB_VERSION" == "tongsuo" ]; then
     export pcre_prefix=$OPENRESTY_PREFIX/pcre
 
     export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${zlib_prefix}/include -I${pcre_prefix}/include -I${openssl_prefix}/include"
-    export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib"
+    export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -L${openssl_prefix}/lib64 -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib:${openssl_prefix}/lib64"
 elif [ "$OPENRESTY_VERSION" == "source" ]; then
     if [ "$COMPILE_FIPS" == "yes" ]; then
         . ./utils/install-openssl-fips.sh
@@ -59,10 +59,10 @@ elif [ "$OPENRESTY_VERSION" == "source" ]; then
     export pcre_prefix=/usr/local/openresty/pcre
     apt install -y build-essential
     export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${zlib_prefix}/include -I${pcre_prefix}/include -I${openssl_prefix}/include"
-    export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib"
+    export ld_opt="-L${zlib_prefix}/lib -L${pcre_prefix}/lib -L${openssl_prefix}/lib -L${openssl_prefix}/lib64 -Wl,-rpath,${zlib_prefix}/lib:${pcre_prefix}/lib:${openssl_prefix}/lib:${openssl_prefix}/lib64"
     ldconfig
 
-    wget -q https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-base.sh
+    wget -q https://raw.githubusercontent.com/api7/apisix-build-tools/master/build-apisix-base.sh
     chmod +x build-apisix-base.sh
     ./build-apisix-base.sh latest
 
@@ -70,9 +70,8 @@ elif [ "$OPENRESTY_VERSION" == "source" ]; then
 else
     . ./utils/install-openssl.sh
     export cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I${openssl_prefix}/include"
-    export ld_opt="-L${openssl_prefix}/lib -Wl,-rpath,${openssl_prefix}/lib"
-
-    wget --no-check-certificate "https://raw.githubusercontent.com/api7/apisix-build-tools/openssl3/build-apisix-runtime.sh"
+    export ld_opt="-L${openssl_prefix}/lib -L${openssl_prefix}/lib64 -Wl,-rpath,${openssl_prefix}/lib:${openssl_prefix}/lib64"
+    wget --no-check-certificate "https://raw.githubusercontent.com/api7/apisix-build-tools/master/build-apisix-runtime.sh"
     chmod +x build-apisix-runtime.sh
     ./build-apisix-runtime.sh latest
 fi
