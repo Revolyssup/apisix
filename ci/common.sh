@@ -16,7 +16,9 @@
 #
 
 set -ex
-
+if [ -z "${openssl_prefix}" ]; then
+    openssl_prefix="/usr/local/openssl"
+fi
 export_version_info() {
     source ./.requirements
 }
