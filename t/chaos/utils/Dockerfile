@@ -39,6 +39,7 @@ RUN set -x \
     perl-app-cpanminus \
     && cd apisix \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
+    && make openssl3 \
     && make deps \
     && cp -v bin/apisix /usr/bin/ \
     && mv ../apisix /usr/local/apisix \
