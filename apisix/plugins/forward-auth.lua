@@ -18,13 +18,14 @@
 local ipairs = ipairs
 local core   = require("apisix.core")
 local http   = require("resty.http")
+local url    = require("net.url")
 
 local schema = {
     type = "object",
     properties = {
         uri = {type = "string"},
         allow_degradation = {type = "boolean", default = false},
-        status_on_error = {type = "integer", minimum = 200, maximum = 599, default = 403},
+        status_on_error = {type = "integer", minimum = 200, maximum = 599, default = 420},
         ssl_verify = {
             type = "boolean",
             default = true,
@@ -58,7 +59,7 @@ local schema = {
             type = "integer",
             minimum = 1,
             maximum = 60000,
-            default = 3000,
+            default = 60000,
             description = "timeout in milliseconds",
         },
         keepalive = {type = "boolean", default = true},
@@ -121,32 +122,67 @@ function _M.access(conf, ctx)
     local httpc = http.new()
     httpc:set_timeout(conf.timeout)
     if params.method == "POST" then
-        local client_body_reader, err = httpc:get_client_body_reader()
-        if client_body_reader then
-            params.body = client_body_reader
-        else
-            core.log.warn("failed to get client_body_reader. err: ", err,
-            " using core.request.get_body() instead")
-            params.body = core.request.get_body()
-        end
+        params.body = core.request.get_body()
     end
 
     if conf.keepalive then
-        params.keepalive_timeout = conf.keepalive_timeout
+        params.keepalive_timeout = 1000
         params.keepalive_pool = conf.keepalive_pool
     end
+    -- extract host and port from conf.uri
+    core.log.warn("URI: ",conf.uri)
+    local url_decoded = url.parse(conf.uri)
+    local host = url_decoded.host
+    local port = url_decoded.port
+    local path = url_decoded.path
+    -- if url_decoded.query then
+    --     path = path .. "?" .. url_decoded.query
+    -- end
+    core.log.warn("hostport ",host, port,path)
+    if ((not port) and url_decoded.scheme == "https") then
+        port = 443
+    elseif not port then
+        port = 80
+    end
+    local ok, err = httpc:connect(host, port)
 
-    local res, err = httpc:request_uri(conf.uri, params)
+    if not ok then
+        return "failed to connect to host[" .. host .. "] port["
+            .. tostring(port) .. "] " .. err
+    end
+    params.path = path
+    local inspect = require("inspect")
+    core.log.warn("PARAMS: ", inspect(params))
+    local res, err = httpc:request(params)
     if not res and conf.allow_degradation then
         return
     elseif not res then
         core.log.warn("failed to process forward auth, err: ", err)
-        return conf.status_on_error
+        return conf.status_on_error, err
     end
-
+    core.log.warn("status is",res.status)
+    local response_body
+    if res.headers["Transfer-Encoding"] == "chunked" then
+        local chunks = {}
+        local reader = res.body_reader
+        repeat
+            local chunk, err = reader(8192)  -- Read in 8KB chunks
+            if err then
+                core.log.warn("failed to read chunked body: ", err)
+                break
+            end
+            if chunk then
+                table.insert(chunks, chunk)
+            end
+        until not chunk
+        response_body = table.concat(chunks)
+    else
+        response_body = res:read_body()
+    end
+    core.log.warn("body is",response_body)
     if res.status >= 300 then
         local client_headers = {}
-
+        core.log.warn("headers are ", inspect(res.headers), " conf.client_headers: ", inspect(conf.client_headers))
         if #conf.client_headers > 0 then
             for _, header in ipairs(conf.client_headers) do
                 client_headers[header] = res.headers[header]
@@ -154,7 +190,7 @@ function _M.access(conf, ctx)
         end
 
         core.response.set_header(client_headers)
-        return res.status, res.body
+        return res.status, response_body
     end
 
     -- append headers that need to be get from the auth response header
