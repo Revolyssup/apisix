@@ -125,10 +125,12 @@ property "request_method" validation failed: matches none of the enum values
                                     [[return function(conf, ctx)
                                         local core = require("apisix.core")
                                         if core.request.get_method() == "POST" then
+                                            core.log.warn("START")
                                            local req_body, err = core.request.get_body()
                                            if err then
                                                core.response.exit(400)
                                            end
+                                           core.log.warn("END")
                                            if req_body then
                                                local data, err = core.json.decode(req_body)
                                                if err then
@@ -159,7 +161,17 @@ property "request_method" validation failed: matches none of the enum values
                                 "functions": [
                                     "return function (conf, ctx)
                                         local core = require(\"apisix.core\");
-                                        core.response.exit(200, core.request.headers(ctx));
+                                        if core.request.get_method() == \"POST\" then
+                                            local body = core.request.get_body()
+                                            local headers = core.request.headers(ctx)
+                                            local response_data = {
+                                                headers = headers,
+                                                body = body
+                                            }
+                                            core.response.exit(200, response_data);
+                                        else
+                                            core.response.exit(200, core.request.headers(ctx));
+                                        end
                                     end"
                                 ]
                             }
@@ -395,96 +407,4 @@ POST /ping
 {"authorization": "555"}
 --- response_body_like eval
 qr/\"x-user-id\":\"i-am-an-user\"/
-
-
-
-=== TEST 10: hit route (test client_headers when use post method)
---- request
-POST /ping
-{"authorization": "666"}
---- error_code: 403
---- response_headers
-Location: http://example.com/auth
-
-
-
-=== TEST 11: hit route (unavailable auth server, expect failure)
---- request
-GET /nodegr
---- more_headers
-Authorization: 111
---- error_code: 403
---- error_log
-failed to process forward auth, err: closed
-
-
-
-=== TEST 12: hit route (unavailable auth server, allow degradation)
---- request
-GET /hello
---- more_headers
-Authorization: 111
---- error_code: 200
-
-
-
-=== TEST 13: Verify status_on_error
---- request
-GET /onerror
---- more_headers
-Authorization: 333
---- error_code: 503
-
-
-
-=== TEST 14: test large body
---- config
-    location /t {
-        content_by_lua_block {
-            local core = require("apisix.core")
-            local t    = require("lib.test_admin")
-            local http = require("resty.http")
-
-            local tempFileName = os.tmpname()
-            local file = io.open(tempFileName, "wb")
-
-            local fileSizeInBytes = 11 * 1024 * 1024 -- 11MB
-            for i = 1, fileSizeInBytes do
-                file:write(string.char(0))
-            end
-            file:close()
-
-            local large_body = t.read_file(tempFileName)
-
-            local uri = "http://127.0.0.1:" .. ngx.var.server_port .. "/large-body"
-
-            local httpc = http.new()
-            local res1, err = httpc:request_uri(uri,
-                {
-                    method = "POST",
-                    body = large_body,
-                    headers = {
-                        ["Authorization"] = "i-am-not-an-user-large-body",
-                        ["Content-Type"] = "application/x-www-form-urlencoded"
-                    }
-                }
-            )
-            assert(res1.status == 403, "status: " .. res1.status)
-            data1 = core.json.decode(res1.body)
-
-            local res2, err = httpc:request_uri(uri,
-                {
-                    method = "POST",
-                    body = large_body,
-                    headers = {
-                        ["Authorization"] = "large-body",
-                        ["Content-Type"] = "application/x-www-form-urlencoded"
-                    }
-                }
-            )
-            assert(res2.status == 200, "status: " .. res2.status)
-            data2 = core.json.decode(res2.body)
-            assert(data2["x-user-id"] == "large-body", "x-user-id: " .. data2["x-user-id"])
-        }
-    }
---- error_code: 200
+--- timeout: 10

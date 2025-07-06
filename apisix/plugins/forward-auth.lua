@@ -18,6 +18,7 @@
 local ipairs = ipairs
 local core   = require("apisix.core")
 local http   = require("resty.http")
+local url    = require("net.url")
 
 local schema = {
     type = "object",
@@ -58,7 +59,7 @@ local schema = {
             type = "integer",
             minimum = 1,
             maximum = 60000,
-            default = 3000,
+            default = 60000,
             description = "timeout in milliseconds",
         },
         keepalive = {type = "boolean", default = true},
@@ -132,21 +133,45 @@ function _M.access(conf, ctx)
     end
 
     if conf.keepalive then
-        params.keepalive_timeout = conf.keepalive_timeout
+        params.keepalive_timeout = 1000
         params.keepalive_pool = conf.keepalive_pool
     end
+    -- extract host and port from conf.uri
+    core.log.warn("URI: ",conf.uri)
+    local url_decoded = url.parse(conf.uri)
+    local host = url_decoded.host
+    local port = url_decoded.port
+    local path = url_decoded.path
+    -- if url_decoded.query then
+    --     path = path .. "?" .. url_decoded.query
+    -- end
+    core.log.warn("hostport ",host, port,path)
+    if ((not port) and url_decoded.scheme == "https") then
+        port = 443
+    elseif not port then
+        port = 80
+    end
+    local ok, err = httpc:connect(host, port)
 
-    local res, err = httpc:request_uri(conf.uri, params)
+    if not ok then
+        return conf.status_on_error
+    end
+    params.path = path
+    local inspect = require("inspect")
+    core.log.warn("PARAMS: ", inspect(params))
+    local res, err = httpc:request(params)
     if not res and conf.allow_degradation then
         return
     elseif not res then
         core.log.warn("failed to process forward auth, err: ", err)
-        return conf.status_on_error
+        return conf.status_on_error, err
     end
-
+    core.log.warn("status is",res.status)
+    local  response_body = res:read_body()
+    core.log.warn("body is",response_body)
     if res.status >= 300 then
         local client_headers = {}
-
+        core.log.warn("headers are ", inspect(res.headers), " conf.client_headers: ", inspect(conf.client_headers))
         if #conf.client_headers > 0 then
             for _, header in ipairs(conf.client_headers) do
                 client_headers[header] = res.headers[header]
@@ -154,7 +179,7 @@ function _M.access(conf, ctx)
         end
 
         core.response.set_header(client_headers)
-        return res.status, res.body
+        return res.status, response_body
     end
 
     -- append headers that need to be get from the auth response header

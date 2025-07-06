@@ -299,8 +299,10 @@ function _M.get_body(max_size, ctx)
             return nil, "HTTP2/HTTP3 request without a Content-Length header"
         end
     end
+    local var = ctx and ctx.var or ngx.var
+    log.warn("reading started...", var.server_protocol)
     req_read_body()
-
+    log.warn("reading ended...")
     local req_body = req_get_body_data()
     if req_body then
         local ok, err = check_size(#req_body, max_size)
