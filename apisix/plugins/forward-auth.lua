@@ -25,7 +25,7 @@ local schema = {
     properties = {
         uri = {type = "string"},
         allow_degradation = {type = "boolean", default = false},
-        status_on_error = {type = "integer", minimum = 200, maximum = 599, default = 420},
+        status_on_error = {type = "integer", minimum = 200, maximum = 599, default = 403},
         ssl_verify = {
             type = "boolean",
             default = true,
@@ -122,7 +122,14 @@ function _M.access(conf, ctx)
     local httpc = http.new()
     httpc:set_timeout(conf.timeout)
     if params.method == "POST" then
-        params.body = core.request.get_body()
+        local client_body_reader, err = httpc:get_client_body_reader()
+        if client_body_reader then
+            params.body = client_body_reader
+        else
+            core.log.warn("failed to get client_body_reader. err: ", err,
+            " using core.request.get_body() instead")
+            params.body = core.request.get_body()
+        end
     end
 
     if conf.keepalive then
@@ -147,8 +154,7 @@ function _M.access(conf, ctx)
     local ok, err = httpc:connect(host, port)
 
     if not ok then
-        return "failed to connect to host[" .. host .. "] port["
-            .. tostring(port) .. "] " .. err
+        return conf.status_on_error
     end
     params.path = path
     local inspect = require("inspect")
@@ -161,24 +167,7 @@ function _M.access(conf, ctx)
         return conf.status_on_error, err
     end
     core.log.warn("status is",res.status)
-    local response_body
-    if res.headers["Transfer-Encoding"] == "chunked" then
-        local chunks = {}
-        local reader = res.body_reader
-        repeat
-            local chunk, err = reader(8192)  -- Read in 8KB chunks
-            if err then
-                core.log.warn("failed to read chunked body: ", err)
-                break
-            end
-            if chunk then
-                table.insert(chunks, chunk)
-            end
-        until not chunk
-        response_body = table.concat(chunks)
-    else
-        response_body = res:read_body()
-    end
+    local  response_body = res:read_body()
     core.log.warn("body is",response_body)
     if res.status >= 300 then
         local client_headers = {}
