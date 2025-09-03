@@ -186,13 +186,25 @@ local function resolve_endpoint(instance_conf)
         host = ai_driver.host
         port = ai_driver.port
     end
-    local node = {
+    local new_node = {
         host = host,
         port = port,
         scheme = scheme,
     }
-    parse_domain_for_node(node)
-    return node
+    parse_domain_for_node(new_node)
+
+    -- Compare with existing node to see if anything changed
+    local old_node = instance_conf._dns_value
+    local nodes_changed = not old_node or
+                         old_node.host ~= new_node.host
+
+    -- Only update if something changed
+    if nodes_changed then
+        instance_conf._dns_value = new_node
+        instance_conf._nodes_ver = (instance_conf._nodes_ver or 0) + 1
+        core.log.info("DNS resolution changed for instance: ", instance_conf.name,
+                     " new node: ", core.json.delay_encode(new_node))
+    end
 end
 
 
@@ -222,7 +234,7 @@ local function fetch_health_instances(conf, checkers)
             local host = ins.checks and ins.checks.active and ins.checks.active.host
             local port = ins.checks and ins.checks.active and ins.checks.active.port
 
-            local node = resolve_endpoint(ins)
+            local node = ins._dns_value
             local ok, err = checker:get_target_status(node.host, port or node.port, host)
             if ok then
                 transform_instances(new_instances, ins)
@@ -277,7 +289,8 @@ end
 
 function _M.construct_upstream(instance)
     local upstream = {}
-    local node = resolve_endpoint(instance)
+    resolve_endpoint(instance)
+    local node = instance._dns_value
     if not node then
         return nil, "failed to resolve endpoint for instance: " .. instance.name
     end
@@ -310,6 +323,7 @@ function _M.construct_upstream(instance)
                 instance.checks.active.http_path, core.string.encode_args(instance.auth.query))
     end
     upstream.checks = instance.checks
+    upstream._nodes_ver = instance._nodes_ver
     return upstream
 end
 

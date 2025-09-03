@@ -858,11 +858,29 @@ passed
 
 
 
-=== TEST 11: configure health check for well-known ai service
+=== TEST 15: DNS change doesn't cause health check errors
 --- config
     location /t {
         content_by_lua_block {
             local t = require("lib.test_admin").test
+            local resolver = require("apisix.core.resolver")
+
+            -- Mock resolver.parse_domain to return different IPs on different calls
+            local original_parse_domain = resolver.parse_domain
+            local call_count = 0
+            resolver.parse_domain = function(host)
+                if host == "test.example.com" then
+                    call_count = call_count + 1
+                    if call_count == 1 then
+                        return "127.0.0.1"
+                    else
+                        return "127.0.0.2"
+                    end
+                end
+                return original_parse_domain(host)
+            end
+
+            -- Create a route with health check that uses the domain
             local code, body = t('/apisix/admin/routes/1',
                  ngx.HTTP_PUT,
                  [[{
@@ -871,7 +889,7 @@ passed
                         "ai-proxy-multi": {
                             "instances": [
                                 {
-                                    "name": "openai-gpt4",
+                                    "name": "openai-test",
                                     "provider": "openai",
                                     "weight": 1,
                                     "priority": 1,
@@ -883,10 +901,14 @@ passed
                                     "options": {
                                         "model": "gpt-4"
                                     },
+                                    "override": {
+                                        "endpoint": "http://test.example.com:16724"
+                                    },
                                     "checks": {
                                         "active": {
                                             "timeout": 5,
-                                            "http_path": "/",
+                                            "http_path": "/status/test",
+                                            "host": "test.example.com",
                                             "healthy": {
                                                 "interval": 1,
                                                 "successes": 1
@@ -894,12 +916,11 @@ passed
                                             "unhealthy": {
                                                 "interval": 1,
                                                 "http_failures": 1
-                                            },
-                                            "req_headers": ["User-Agent: curl/7.29.0"]
+                                            }
                                         }
                                     }
                                 },
-                                {"name":"openai-gpt3","provider":"openai","weight":1,"priority":1,"auth":{"header":{"Authorization":"Bearer token"}},"options":{"model":"gpt-3"}}
+                                {"name": "openai-test-2","provider": "openai","weight": 1,"priority": 1,"auth": {"header": {"Authorization": "Bearer token"}},"options": {"model": "gpt-4"},"override": {"endpoint": "http://test.example.com:16724"},"checks": {"active": {"timeout": 5,"http_path": "/status/test","host": "test.example.com","healthy": {"interval": 1,"successes": 1},"unhealthy": {"interval": 1,"http_failures": 1}}}}
                             ],
                             "ssl_verify": false
                         }
@@ -910,110 +931,171 @@ passed
                 ngx.status = code
             end
             ngx.say(body)
+            
+            local code, _, body = t("/ai",
+                ngx.HTTP_POST,
+                [[{
+                    "messages": [
+                        { "role": "system", "content": "You are a mathematician" },
+                        { "role": "user", "content": "What is 1+1?" }
+                    ]
+                }]],
+                nil,
+                {
+                    ["test-type"] = "options",
+                    ["Content-Type"] = "application/json",
+                }
+            )
+            
+            -- Wait a bit for health check to run
+            ngx.sleep(1.5)
+            
+            local code, _, body = t("/ai",
+                ngx.HTTP_POST,
+                [[{
+                    "messages": [
+                        { "role": "system", "content": "You are a mathematician" },
+                        { "role": "user", "content": "What is 1+1?" }
+                    ]
+                }]],
+                nil,
+                {
+                    ["test-type"] = "options",
+                    ["Content-Type"] = "application/json",
+                }
+            )
+            
+            -- Restore original function
+            resolver.parse_domain = original_parse_domain
+            
+            ngx.say("passed")
         }
     }
 --- response_body
 passed
+passed
+--- no_error_log
+failed to get health check target status
 
 
-
-=== TEST 12: send request to /ai should failed with 401
---- request
-POST /ai
-{
-  "messages": [
-    {
-      "role": "user",
-      "content": "write a haiku about ai"
-    }
-  ]
-}
---- error_code: 401
-
-
-
-=== TEST 13: create a ai-proxy-multi plugin that use post method as health check
+=== TEST 15: DNS change doesn't cause health check errors
 --- config
     location /t {
         content_by_lua_block {
             local t = require("lib.test_admin").test
+            local resolver = require("apisix.core.resolver")
+
+            -- Mock resolver.parse_domain to return different IPs on different calls
+            local original_parse_domain = resolver.parse_domain
+            local call_count = 0
+            resolver.parse_domain = function(host)
+                if host == "test.example.com" then
+                    call_count = call_count + 1
+                    if call_count == 1 then
+                        return "127.0.0.1"
+                    else
+                        return "127.0.0.2"
+                    end
+                end
+                return original_parse_domain(host)
+            end
+
+            -- Create a route with health check that uses the domain
             local code, body = t('/apisix/admin/routes/1',
                  ngx.HTTP_PUT,
                  [[{
                     "uri": "/ai",
                     "plugins": {
                         "ai-proxy-multi": {
-                            "fallback_strategy": "instance_health_and_rate_limiting",
                             "instances": [
                                 {
-                                    "name":"openai-gpt4","provider":"openai","weight":1,"priority":1,"auth":{"header":{"Authorization":"Bearer token"},"query":{"apikey":"token_in_query"}},"options":{"model":"gpt-4"},"override":{"endpoint":"http://localhost:16724"},
+                                    "name": "openai-test",
+                                    "provider": "openai",
+                                    "weight": 1,
+                                    "priority": 1,
+                                    "auth": {
+                                        "header": {
+                                            "Authorization": "Bearer token"
+                                        }
+                                    },
+                                    "options": {
+                                        "model": "gpt-4"
+                                    },
+                                    "override": {
+                                        "endpoint": "http://test.example.com:16724"
+                                    },
                                     "checks": {
                                         "active": {
                                             "timeout": 5,
-                                            "http_method": "POST",
-                                            "http_path": "/post",
-                                            "http_req_body": "{\"model\":\"gpt-4o-mini\",\"messages\":[{\"role\":\"user\",\"content\":\"write a haiku about ai\"}],\"stream\":false}",
-                                            "host": "foo.com",
+                                            "http_path": "/status/test",
+                                            "host": "test.example.com",
                                             "healthy": {
                                                 "interval": 1,
                                                 "successes": 1
                                             },
-                                            "req_headers": ["User-Agent: curl/7.29.0"]
+                                            "unhealthy": {
+                                                "interval": 1,
+                                                "http_failures": 1
+                                            }
                                         }
                                     }
                                 },
-                                {"name":"openai-gpt3","provider":"openai","weight":1,"priority":1,"auth":{"header":{"Authorization":"Bearer token"}},"options":{"model":"gpt-3"},"override":{"endpoint":"http://localhost:16724"}}
+                                {"name": "openai-test-2","provider": "openai","weight": 1,"priority": 1,"auth": {"header": {"Authorization": "Bearer token"}},"options": {"model": "gpt-4"},"override": {"endpoint": "http://test.example.com:16724"},"checks": {"active": {"timeout": 5,"http_path": "/status/test","host": "test.example.com","healthy": {"interval": 1,"successes": 1},"unhealthy": {"interval": 1,"http_failures": 1}}}}
                             ],
                             "ssl_verify": false
                         }
                     }
                 }]]
             )
+
             if code >= 300 then
                 ngx.status = code
             end
             ngx.say(body)
-        }
-    }
---- response_body
-passed
-
-
-
-=== TEST 14: check if the health check works
---- config
-    location /t {
-        content_by_lua_block {
-            local t = require("lib.test_admin").test
-            local core = require("apisix.core")
-            local send_request = function()
-                local code, _, body = t("/ai",
-                    ngx.HTTP_POST,
-                    [[{
-                        "messages": [
-                            { "role": "system", "content": "You are a mathematician" },
-                            { "role": "user", "content": "What is 1+1?" }
-                        ]
-                    }]],
-                    nil,
-                    {
-                        ["Content-Type"] = "application/json",
-                    }
-                )
-                assert(code == 200, "request should be successful")
-                return body
-            end
-            -- trigger the health check
-            send_request()
-            ngx.sleep(1)
+            
+            local code, _, body = t("/ai",
+                ngx.HTTP_POST,
+                [[{
+                    "messages": [
+                        { "role": "system", "content": "You are a mathematician" },
+                        { "role": "user", "content": "What is 1+1?" }
+                    ]
+                }]],
+                nil,
+                {
+                    ["test-type"] = "options",
+                    ["Content-Type"] = "application/json",
+                }
+            )
+            
+            -- Wait a bit for health check to run
+            ngx.sleep(1.5)
+            
+            local code, _, body = t("/ai",
+                ngx.HTTP_POST,
+                [[{
+                    "messages": [
+                        { "role": "system", "content": "You are a mathematician" },
+                        { "role": "user", "content": "What is 1+1?" }
+                    ]
+                }]],
+                nil,
+                {
+                    ["test-type"] = "options",
+                    ["Content-Type"] = "application/json",
+                }
+            )
+            
+            -- Restore original function
+            resolver.parse_domain = original_parse_domain
+            
             ngx.say("passed")
         }
     }
 --- response_body
 passed
+passed
+--- no_error_log
+failed to get health check target status
 --- error_log
-probe method: POST
-probe authorization header: Bearer token
-probe apikey query: token_in_query
-probe content-length: 102
-probe body: {"model":"gpt-4o-mini","messages":[{"role":"user","content":"write a haiku about ai"}],"stream":false}
+clearing checker for openai-test
